@@ -1,71 +1,59 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
+import debounce from "lodash.debounce";
 
 import { searchPhotos } from "../../api/unsplash";
-
-import type { Photo } from "../../types";
+import PhotoCard from "../../components/PhotoCard";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPhotos } from "../../features/photos/photoSlice";
 
 function Home() {
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  const dispatch = useDispatch();
+  const { photos } = useSelector((state) => state.photos);
 
-  const [search, setSearch] = useState("nature");
+  // API search
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
 
-  const fetchPhotos = async () => {
-    const data = await searchPhotos(search);
-
-    setPhotos(data);
+    try {
+      if (value.trim() === "") {
+        dispatch(fetchPhotos("nature"));
+        return;
+      }
+      dispatch(fetchPhotos(value));
+    } catch (error) {
+      console.error("Error fetching photos:", error);
+    }
   };
 
+  const debouncedResults = useMemo(() => {
+    return debounce(handleChange, 500);
+  }, []);
+
   useEffect(() => {
-     fetchPhotos();
+    const getPhoto = async () => {
+      dispatch(fetchPhotos("nature"));
+    };
+    getPhoto();
+    return () => {
+      debouncedResults.cancel();
+    };
   }, []);
 
   return (
     <div className="container mt-4">
-
-    
       <div className="mb-4">
-
         <input
           type="text"
+          placeholder="Search photos..."
+          onChange={debouncedResults}
           className="form-control"
-          placeholder="Search images..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
         />
-
-        <button
-          className="btn btn-dark mt-3"
-          onClick={fetchPhotos}
-        >
-          Search
-        </button>
-
       </div>
 
-     
       <div className="row">
-
         {photos.map((photo) => (
-          <div
-            className="col-md-4 mb-4"
-            key={photo.id}
-          >
-            <div className="card shadow-sm">
-
-              <img
-                src={photo.urls.regular}
-                alt={photo.alt_description}
-                className="card-img-top"
-                style={{
-                  height: "300px",
-                  objectFit: "cover",
-                }}
-              />
-
-            </div>
-          </div>
+          <PhotoCard photo={photo} />
         ))}
-
       </div>
     </div>
   );
