@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+
 import { searchPhotos } from "../../api/unsplash";
 
 import type { Photo } from "../../types";
@@ -11,16 +12,25 @@ interface PhotoState {
 
 const initialState: PhotoState = {
   photos: [],
-  loading: true,
+  loading: false,
   error: null,
 };
 
 // API thunk
 export const fetchPhotos = createAsyncThunk(
   "photos/fetchPhotos",
-  async (query: string) => {
-    const data = await searchPhotos(query);
-    return data;
+
+  async (query: string, { rejectWithValue }) => {
+    try {
+      const data = await searchPhotos(query);
+
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue("Failed to fetch photos. Please try again.");
+    }
   },
 );
 
@@ -33,20 +43,39 @@ const photoSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      .addCase(fetchPhotos.pending, (state) => {
-        state.loading = true;
-      })
 
-      .addCase(fetchPhotos.fulfilled, (state, action) => {
-        state.loading = false;
-        state.photos = action.payload;
-      })
+      // PENDING
+      .addCase(
+        fetchPhotos.pending,
 
-      .addCase(fetchPhotos.rejected, (state) => {
-        state.loading = false;
+        (state) => {
+          state.loading = true;
 
-        state.error = "Failed to fetch photos";
-      });
+          state.error = null;
+        },
+      )
+
+      // SUCCESS
+      .addCase(
+        fetchPhotos.fulfilled,
+
+        (state, action) => {
+          state.loading = false;
+
+          state.photos = action.payload;
+        },
+      )
+
+      // ERROR
+      .addCase(
+        fetchPhotos.rejected,
+
+        (state, action) => {
+          state.loading = false;
+
+          state.error = action.payload as string;
+        },
+      );
   },
 });
 

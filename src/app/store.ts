@@ -1,11 +1,13 @@
-import { configureStore } from '@reduxjs/toolkit';
-import photoReducer from "../features/photos/photoSlice";
-
+import { configureStore } from "@reduxjs/toolkit";
+import photoReducer from "../Features/photos/photoSlice";
+import moodboardReducer from "../Features/Moodboard/moodboardSlice";
+import unsplashAuthReducer from "../Features/unsplashAuthSlice/unsplashAuthSlice";
 
 export const store = configureStore({
   reducer: {
-    photos:photoReducer,
-    
+    photos: photoReducer,
+    moodBoard: moodboardReducer,
+    unsplashAuth: unsplashAuthReducer,
   },
 });
 
