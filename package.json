@@ -17,6 +17,7 @@
     "bootstrap": "^5.3.8",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^1.14.0",
+    "masonry-layout": "^4.2.2",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-error-boundary": "^6.1.1",
@@ -27,7 +28,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/imagesloaded": "^4.1.7",
     "@types/lodash.debounce": "^4.0.9",
+    "@types/masonry-layout": "^4.2.8",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

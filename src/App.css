@@ -1,0 +1,32 @@
+
+.homepage-wrapper {
+  background-color: #F1E2D1 !important;
+  min-height: 100vh; 
+  width: 100%;
+  padding-top: 24px; 
+  margin: 0;
+}
+
+.card:hover{
+    filter: brightness(0.67);
+    transition:  0.25s ease-in-out, transform 0.15s ease !important;
+}
+.card:hover .hover-heart {
+  opacity: 1 !important; 
+}
+
+.hover-heart {
+  transition: opacity 0.25s ease-in-out, transform 0.15s ease !important;
+}
+
+.hover-heart:hover {
+  transform: scale(1.1);
+  background-color: #f8f9fa !important; 
+}
+
+.bg-container {
+  background-color: #F1E2D1;
+  
+  
+  
+}

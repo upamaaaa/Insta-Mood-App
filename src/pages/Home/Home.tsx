@@ -14,7 +14,7 @@ function Home() {
 
   // SEARCH INPUT
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    const value = e.target.value;      
 
     try {
       startTransition(() => {
@@ -60,7 +60,9 @@ function Home() {
   }, [accessToken , dispatch ,debouncedResults]);
 
   return (
-    <div className="container mt-4">
+    <div className="bg-container">
+
+    <div className="container mt-4" >
       {!accessToken && (
         <a
           href={`https://unsplash.com/oauth/authorize?client_id=jAs2onJiWcW-Y1Kud5VerPftowQ1oEkQ6ocYz7YKNY4&redirect_uri=http://localhost:5173/auth/callback&response_type=code&scope=public+write_collections`}
@@ -71,7 +73,8 @@ function Home() {
       )}
 
       {/* SEARCH */}
-      <div className="mb-4">
+      
+      <div className="mb-4" >
         <input
           type="text"
           placeholder="Search photos..."
@@ -124,8 +127,10 @@ function Home() {
         {photos.map((photo) => (
           <PhotoCard key={photo.id} photo={photo} />
         ))}
+         </div>
       </div>
     </div>
+   
   );
 }
 

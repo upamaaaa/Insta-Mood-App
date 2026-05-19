@@ -68,10 +68,17 @@ function PhotoCard({ photo }: Props) {
         />
 
         {/* heart button */}
-        <button
-          onClick={handleLike}
-          className="btn position-absolute top-0 end-0 m-2 bg-white rounded-circle"
-        >
+          <button
+            onClick={handleLike}
+            className="btn position-absolute top-0 end-0 m-2 opacity-0 hover-heart bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+        style={{
+          width: "40px",
+          height: "40px",
+          zIndex: 2,  
+          padding: 0
+        }}
+          >
+
           <Heart
             color={optimisticLike ? "red" : "black"}
             fill={optimisticLike ? "red" : "none"}

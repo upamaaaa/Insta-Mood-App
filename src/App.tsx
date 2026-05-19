@@ -19,6 +19,7 @@ import { getCollectionPhotos } from "./api/unsplash";
 
 import { setLikedPhotos } from "./Features/Moodboard/moodboardSlice";
 import { useAppSelector } from "./app/hooks";
+import './App.css';
 
 function App() {
   const dispatch = useDispatch();
