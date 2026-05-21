@@ -8,13 +8,11 @@ import { getAccessToken } from "../api/unsplash";
 
 import { setAccessToken } from "../Features/unsplashAuthSlice/unsplashAuthSlice";
 
-
 function AuthCallback() {
-
   const dispatch = useDispatch();
 
   const navigate = useNavigate();
-// Run when oage loads
+  // Run when oage loads
   useEffect(() => {
     const fetchToken = async () => {
       const params = new URLSearchParams(window.location.search);
@@ -27,7 +25,7 @@ function AuthCallback() {
         const data = await getAccessToken(code);
 
         console.log("ACCESS TOKEN:", data.access_token);
-
+        //token arrives
         dispatch(setAccessToken(data.access_token));
         navigate("/");
       } catch (error) {
@@ -36,7 +34,7 @@ function AuthCallback() {
     };
 
     fetchToken();
-  }, []);
+  }, [dispatch, navigate]);
 
   return (
     <div className="container mt-5">

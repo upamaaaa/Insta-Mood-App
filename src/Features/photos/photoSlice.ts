@@ -4,14 +4,15 @@ import { searchPhotos } from "../../api/unsplash";
 
 import type { Photo } from "../../types";
 
+//Redux state structure
 interface PhotoState {
-  photos: Photo[];
+  photos: Photo[];//Pic fetched from index.ts
   loading: boolean;
   error: string | null;
 }
 
 const initialState: PhotoState = {
-  photos: [],
+  photos: [], 
   loading: false,
   error: null,
 };

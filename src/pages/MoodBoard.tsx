@@ -1,9 +1,9 @@
-import { useSelector } from "react-redux";
+import { useAppSelector } from "../app/hooks";
 
 import PhotoCard from "../components/PhotoCard";
 
 function MoodBoard() {
-  const likedPhotos = useSelector((state) => state.moodBoard.likedPhotos);
+  const likedPhotos = useAppSelector((state) => state.moodBoard.likedPhotos);
 
   return (
     <div className="container mt-4">
