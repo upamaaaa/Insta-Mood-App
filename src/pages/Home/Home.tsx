@@ -1,74 +1,132 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useTransition } from "react";
+import debounce from "lodash.debounce";
+import PhotoCard from "../../components/PhotoCard";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { fetchPhotos } from "../../Features/photos/photoSlice";
 
-import { searchPhotos } from "../../api/unsplash";
+export default function Home() {
+  const dispatch = useAppDispatch();
+  const { photos, loading, error } = useAppSelector((state) => state.photos);
+  const accessToken = useAppSelector((state) => state.unsplashAuth.accessToken);
 
-import type { Photo } from "../../types";
+  // TRANSITION
+  const [isPending, startTransition] = useTransition();
 
-function Home() {
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  // SEARCH INPUT
+  const handleChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
 
-  const [search, setSearch] = useState("nature");
+      startTransition(() => {
+        //if input is empty
+        if (value.trim() === "") {
+          dispatch(fetchPhotos("nature"));
+          return;
+        }
+        //for search dynamic behaviour
+        dispatch(fetchPhotos(value));
+      });
+    },
+    [dispatch],
+  );
 
-  const fetchPhotos = async () => {
-    const data = await searchPhotos(search);
-
-    setPhotos(data);
+  //  Filters
+  const handleCategory = (category: string) => {
+    startTransition(() => {
+      dispatch(fetchPhotos(category));
+    });
   };
 
+  // Debounce
+  const debouncedResults = useMemo(() => {
+    return debounce(handleChange, 500);
+  }, [handleChange]);
+
+  // INITIAL LOAD
   useEffect(() => {
-     fetchPhotos();
-  }, []);
+    const getPhoto = async () => {
+      // homepage photos
+      dispatch(fetchPhotos("nature"));
+
+      // collection
+    };
+
+    getPhoto();
+
+    return () => {
+      debouncedResults.cancel();
+    };
+  }, [accessToken, dispatch, debouncedResults]);
+
 
   return (
-    <div className="container mt-4">
-
-    
-      <div className="mb-4">
-
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Search images..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-
-        <button
-          className="btn btn-dark mt-3"
-          onClick={fetchPhotos}
-        >
-          Search
-        </button>
-
-      </div>
-
-     
-      <div className="row">
-
-        {photos.map((photo) => (
-          <div
-            className="col-md-4 mb-4"
-            key={photo.id}
+    <div className="bg-container">
+      <div className="container">
+        {!accessToken && (
+          <a
+            href={`https://unsplash.com/oauth/authorize?client_id=jAs2onJiWcW-Y1Kud5VerPftowQ1oEkQ6ocYz7YKNY4&redirect_uri=http://localhost:5173/auth/callback&response_type=code&scope=public+write_collections`}
+            className="btn btn-dark mb-4"
           >
-            <div className="card shadow-sm">
+            Connect Unsplash
+          </a>
+        )}
 
-              <img
-                src={photo.urls.regular}
-                alt={photo.alt_description}
-                className="card-img-top"
-                style={{
-                  height: "300px",
-                  objectFit: "cover",
-                }}
-              />
+        {/* SEARCH */}
 
-            </div>
+        <div className="mb-4 p-5">
+          <input
+            type="text"
+            placeholder="Search photos..."
+            onChange={debouncedResults}
+            className="form-control"
+          />
+        </div>
+
+        <div className="d-flex gap-2 mb-4 flex-wrap">
+          <button
+            className="btn btn-outline-danger rounded-pill px-4"
+            onClick={() => handleCategory("minimalist")}
+          >
+            Minimalist
+          </button>
+
+          <button
+            className="btn btn-outline-danger rounded-pill px-4"
+            onClick={() => handleCategory("industrial")}
+          >
+            Industrial
+          </button>
+
+          <button
+            className="btn btn-outline-danger rounded-pill px-4"
+            onClick={() => handleCategory("vibrant")}
+          >
+            Vibrant
+          </button>
+        </div>
+
+        {(loading || isPending) && <p>Loading photos..</p>}
+
+        {/* ERROR */}
+        {error && (
+          <div className="alert alert-danger d-flex justify-content-between align-items-center">
+            <span>{error}</span>
+
+            <button
+              className="btn btn-sm btn-dark"
+              onClick={() => dispatch(fetchPhotos("nature"))}
+            >
+              Retry
+            </button>
           </div>
-        ))}
+        )}
 
+        <div className="row" >
+          {photos.map((photo) => (
+            <PhotoCard key={photo.id} photo={photo} />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
-
-export default Home;

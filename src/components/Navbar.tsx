@@ -1,39 +1,67 @@
 import { Link } from "react-router-dom";
-import { Show, SignInButton, UserButton } from "@clerk/react";
-import { VenetianMask } from "lucide-react";
+import { Show, UserButton } from "@clerk/react";
+import { VenetianMask, Heart, FolderHeart } from "lucide-react";
+import { useAppSelector } from "../app/hooks";
 
 export function Navbar() {
+  const likedCount = useAppSelector(
+    (state) => state.moodBoard.likedPhotos.length,
+  );
+
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
-      <div className="container">
-        <Link to="/" className="navbar-brand d-flex align-items-center gap-2">
-          <div className="bg-light text-dark p-2 rounded">
-            <VenetianMask size={30} />
-          </div>
-            <span className="fw-bold fs-4">InstaM꩜꩜d𑣲⋆</span>
+    <nav
+      className="navbar navbar-expand navbar-dark sticky-top"
+      style={{
+        background: "#8c3030",
+       
+      }}
+    >
+      <div className="container d-flex justify-content-between align-items-center">
+        <Link
+          to="/home"
+          className="navbar-brand d-flex align-items-center gap-2"
+        >
+          <VenetianMask size={28} />
+          <span className="fw-bold fs-4">InstaM꩜꩜d𑣲⋆</span>
         </Link>
 
         <div
           className="collapse navbar-collapse justify-content-end"
           id="navbarContent"
         >
-          <Show when={"signed-out"}>
-            <div className="d-flex gap-2">
-              <button className="btn btn-outline-light">
-                <SignInButton />
-              </button>
-            </div>
-          </Show>
+          <div className="d-flex align-items-center gap-4">
+            <Link
+              to="/moodboard"
+              className="d-flex align-items-center gap-2 text-decoration-none text-white position-relative"
+              style={{ fontSize: "1.05rem", fontWeight: "500" }}
+            >
+              <FolderHeart size={22} color="#ffb3b3" />
+            </Link>
 
-          <Show when={"signed-in"}>
-            <div className="d-flex gap-2">
-             <UserButton />
-             </div>
-          </Show>
+            <div className="d-flex align-items-center gap-1 text-white">
+              <Heart
+                size={20}
+                color={likedCount > 0 ? "#ff4d4d" : "#ffffff"}
+                fill={likedCount > 0 ? "#ff4d4d" : "none"}
+              />
+              {likedCount > 0 && (
+                <span
+                  className="badge rounded-circle bg-white text-dark ms-1 fw-bold"
+                  style={{ fontSize: "0.75rem" }}
+                >
+                  {likedCount}
+                </span>
+              )}
+            </div>
+
+            <Show when={"signed-in"}>
+              <UserButton />
+            </Show>
+          </div>
         </div>
       </div>
     </nav>
   );
 }
 
-export default Navbar;
+
