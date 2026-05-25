@@ -1,54 +1,57 @@
-import { useEffect } from "react";
+import { useEffect, Suspense, lazy } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
-import { Show, SignIn } from "@clerk/react";
+import { Show } from "@clerk/react";
 import { useDispatch } from "react-redux";
 import { Navbar } from "./components/Navbar";
-// import { Home } from "./pages/Home/Home";
-import MoodBoard from "./pages/MoodBoard";
-import AuthCallback from "./pages/AuthCallback";
 import { ErrorBoundary } from "react-error-boundary";
 import { getCollectionPhotos } from "./api/unsplash";
 import { setLikedPhotos } from "./Features/Moodboard/moodboardSlice";
 import { useAppSelector } from "./app/hooks";
-import { Suspense, lazy } from 'react';
 import "./App.css";
 
-const Home = lazy(()=> import('./pages/Home/Home'));
+const Home = lazy(() => import("./pages/Home/Home"));
+const MoodBoard = lazy(() => import("./pages/MoodBoard"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const SignIn = lazy(() =>
+  import("@clerk/react").then((module) => ({ default: module.SignIn })),
+);
 
 function App() {
   const dispatch = useDispatch();
-  const accessToken = useAppSelector((state) => state.unsplashAuth.accessToken);
+  const accessToken = useAppSelector(
+    (state) => state.unsplashAuth.unsplashToken,
+  );
   useEffect(() => {
-    const syncCollection = async () => {
+    const syncLikedPhotos = async () => {
       if (accessToken) {
         const collectionPhotos = await getCollectionPhotos(accessToken);
         dispatch(setLikedPhotos(collectionPhotos));
       }
     };
-    syncCollection();
+    syncLikedPhotos();
   }, [accessToken, dispatch]);
-  
+
   return (
     <>
-    <Suspense fallback = {<div> Loading...</div>}>
-      <ErrorBoundary fallback={<div>Something Went wrong</div>}>
-        <Show when="signed-out">
-          <div className="d-flex justify-content-center align-items-center vh-100">
-            <SignIn forceRedirectUrl="/home" />
-          </div>
-        </Show>
+      <Suspense fallback={<div> Loading</div>}>
+        <ErrorBoundary fallback={<div>Something Went wrong</div>}>
+          <Show when="signed-out">
+            <div className="d-flex justify-content-center align-items-center vh-100">
+              <SignIn forceRedirectUrl="/home" />
+            </div>
+          </Show>
 
-        <Show when="signed-in">
-          <Navbar />
-          <Routes>
-            <Route path="/home" element={<Home />} />
-            <Route path="/moodboard" element={<MoodBoard />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="*" element={<Navigate to="/home" />} />
-          </Routes>
-        </Show>
-      </ErrorBoundary>
-    </Suspense>
+          <Show when="signed-in">
+            <Navbar />
+            <Routes>
+              <Route path="/home" element={<Home />} />
+              <Route path="/moodboard" element={<MoodBoard />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="*" element={<Navigate to="/home" />} />
+            </Routes>
+          </Show>
+        </ErrorBoundary>
+      </Suspense>
     </>
   );
 }

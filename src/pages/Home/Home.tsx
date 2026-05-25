@@ -1,30 +1,45 @@
-import { useCallback, useEffect, useMemo, useRef, useTransition } from "react";
+import { useCallback, useEffect, useRef, useTransition } from "react";
 import debounce from "lodash.debounce";
 import PhotoCard from "../../components/PhotoCard";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { fetchPhotos } from "../../Features/photos/photoSlice";
+import { fetchPhotosApi } from "../../Features/photos/photoSlice";
+import { infiniteScroll } from "../../hooks/InfiniteScroll";
 
 export default function Home() {
   const dispatch = useAppDispatch();
-  const { photos, loading, error } = useAppSelector((state) => state.photos);
-  const accessToken = useAppSelector((state) => state.unsplashAuth.accessToken);
+  const { photos, loading, photosError } = useAppSelector(
+    (state) => state.photos,
+  );
+  const accessToken = useAppSelector(
+    (state) => state.unsplashAuth.unsplashToken,
+  );
 
   // TRANSITION
   const [isPending, startTransition] = useTransition();
 
-  // SEARCH INPUT
+  // Scroll Define
+  const photoContainerRef = useRef<HTMLDivElement | null>(null);
+  const bottomDivRef = useRef<HTMLDivElement | null>(null);
+  const pageRef = useRef(1);
+  const queryRef = useRef("nature");
+  const debouncedResultsRef = useRef<ReturnType<typeof debounce> | null>(null);
+
   const handleChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
 
       startTransition(() => {
-        //if input is empty
+        // if input is empty
         if (value.trim() === "") {
-          dispatch(fetchPhotos("nature"));
+          pageRef.current = 1;
+          queryRef.current = "nature";
+          dispatch(fetchPhotosApi({ query: "nature", page: 1 }));
           return;
         }
-        //for search dynamic behaviour
-        dispatch(fetchPhotos(value));
+
+        pageRef.current = 1;
+        queryRef.current = value;
+        dispatch(fetchPhotosApi({ query: value, page: 1 }));
       });
     },
     [dispatch],
@@ -32,32 +47,52 @@ export default function Home() {
 
   //  Filters
   const handleCategory = (category: string) => {
+    pageRef.current = 1;
     startTransition(() => {
-      dispatch(fetchPhotos(category));
+      dispatch(fetchPhotosApi({ query: category, page: 1 }));
     });
   };
 
-  // Debounce
-  const debouncedResults = useMemo(() => {
-    return debounce(handleChange, 500);
+  useEffect(() => {
+    debouncedResultsRef.current = debounce(handleChange, 500);
+
+    return () => {
+      debouncedResultsRef.current?.cancel();
+    };
   }, [handleChange]);
 
   // INITIAL LOAD
   useEffect(() => {
     const getPhoto = async () => {
-      // homepage photos
-      dispatch(fetchPhotos("nature"));
-
-      // collection
+      pageRef.current = 1;
+      queryRef.current = "nature";
+      dispatch(fetchPhotosApi({ query: "nature", page: 1 }));
     };
 
     getPhoto();
 
     return () => {
-      debouncedResults.cancel();
+      debouncedResultsRef.current?.cancel();
     };
-  }, [accessToken, dispatch, debouncedResults]);
+  }, [accessToken, dispatch]);
 
+  //scroll
+
+  useEffect(() => {
+    if (!bottomDivRef.current) return;
+
+    const cleanup = infiniteScroll(bottomDivRef.current, () => {
+      pageRef.current += 1;
+      dispatch(
+        fetchPhotosApi({
+          query: queryRef.current,
+          page: pageRef.current,
+        }),
+      );
+    });
+
+    return cleanup;
+  }, [dispatch]);
 
   return (
     <div className="bg-container">
@@ -77,7 +112,7 @@ export default function Home() {
           <input
             type="text"
             placeholder="Search photos..."
-            onChange={debouncedResults}
+            onChange={(e) => debouncedResultsRef.current?.(e)}
             className="form-control"
           />
         </div>
@@ -107,25 +142,30 @@ export default function Home() {
 
         {(loading || isPending) && <p>Loading photos..</p>}
 
-        {/* ERROR */}
-        {error && (
+        {/* UI ERROR */}
+        {photosError && (
           <div className="alert alert-danger d-flex justify-content-between align-items-center">
-            <span>{error}</span>
+            <span>{photosError}</span>
 
             <button
               className="btn btn-sm btn-dark"
-              onClick={() => dispatch(fetchPhotos("nature"))}
+              onClick={() => {
+                pageRef.current = 1;
+                queryRef.current = "nature";
+                dispatch(fetchPhotosApi({ query: "nature", page: 1 }));
+              }}
             >
               Retry
             </button>
           </div>
         )}
 
-        <div className="row" >
+        <div className="row photoContainer" ref={photoContainerRef}>
           {photos.map((photo) => (
             <PhotoCard key={photo.id} photo={photo} />
           ))}
         </div>
+        <div ref={bottomDivRef} style={{ height: "1px" }} />
       </div>
     </div>
   );

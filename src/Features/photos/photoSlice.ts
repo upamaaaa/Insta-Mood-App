@@ -1,29 +1,38 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-import { searchPhotos } from "../../api/unsplash";
+import { searchPhotosFromUnsplash } from "../../api/unsplash";
 
 import type { Photo } from "../../types";
 
 //Redux state structure
 interface PhotoState {
-  photos: Photo[];//Pic fetched from index.ts
+  photos: Photo[]; //Pic fetched from index.ts
   loading: boolean;
-  error: string | null;
+  photosError: string | null;
 }
 
 const initialState: PhotoState = {
-  photos: [], 
+  photos: [],
   loading: false,
-  error: null,
+  photosError: null,
 };
 
 // API thunk
-export const fetchPhotos = createAsyncThunk(
+export const fetchPhotosApi = createAsyncThunk(
   "photos/fetchPhotos",
 
-  async (query: string, { rejectWithValue }) => {
+  async (
+    {
+      query,
+      page,
+    }: {
+      query: string;
+      page: number;
+    },
+    { rejectWithValue },
+  ) => {
     try {
-      const data = await searchPhotos(query);
+      const data = await searchPhotosFromUnsplash(query, page);
 
       return data;
     } catch (error) {
@@ -47,34 +56,38 @@ const photoSlice = createSlice({
 
       // PENDING
       .addCase(
-        fetchPhotos.pending,
+        fetchPhotosApi.pending,
 
         (state) => {
           state.loading = true;
 
-          state.error = null;
+          state.photosError = null;
         },
       )
 
       // SUCCESS
       .addCase(
-        fetchPhotos.fulfilled,
+        fetchPhotosApi.fulfilled,
 
         (state, action) => {
+          const page = action.meta.arg.page;
+          if (page === 1) {
+            state.photos = action.payload;
+          } else {
+            state.photos = [...state.photos, ...action.payload];
+          }
           state.loading = false;
-
-          state.photos = action.payload;
         },
       )
 
       // ERROR
       .addCase(
-        fetchPhotos.rejected,
+        fetchPhotosApi.rejected,
 
         (state, action) => {
           state.loading = false;
 
-          state.error = action.payload as string;
+          state.photosError = action.payload as string;
         },
       );
   },

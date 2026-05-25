@@ -20,7 +20,7 @@ function PhotoCard({ photo }: Props) {
 
   const likedPhotos = useAppSelector((state) => state.moodBoard.likedPhotos);
 
-  const accessToken = useAppSelector((state) => state.unsplashAuth.accessToken);
+  const accessToken = useAppSelector((state) => state.unsplashAuth.unsplashToken);
 
   const isLikedInitially = likedPhotos.some((p) => p.id === photo.id);
 

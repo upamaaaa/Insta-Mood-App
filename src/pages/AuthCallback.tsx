@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 import { getAccessToken } from "../api/unsplash";
 
-import { setAccessToken } from "../Features/unsplashAuthSlice/unsplashAuthSlice";
+import { setunsplashToken } from "../Features/unsplashAuthSlice/unsplashAuthSlice";
 
 function AuthCallback() {
   const dispatch = useDispatch();
@@ -26,10 +26,12 @@ function AuthCallback() {
 
         console.log("ACCESS TOKEN:", data.access_token);
         //token arrives
-        dispatch(setAccessToken(data.access_token));
+        dispatch(setunsplashToken(data.access_token));
         navigate("/");
       } catch (error) {
-        console.error("Token fetch failed:", error);
+        if (error instanceof Error) {
+          console.error("Token fetch failed:", error.message);
+        }
       }
     };
 
